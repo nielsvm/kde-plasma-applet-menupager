@@ -1,0 +1,17 @@
+[Desktop Entry]
+Name=Menu Pager
+Comment=Switch between virtual desktops using a menu
+Icon=org.kde.plasma.activitybar
+Type=Service
+X-KDE-PluginInfo-Author=Niels
+X-KDE-PluginInfo-Category=Windows and Tasks
+X-KDE-PluginInfo-Email=niels@nielsvm.org
+X-KDE-PluginInfo-EnabledByDefault=false
+X-KDE-PluginInfo-License=GPL3
+X-KDE-PluginInfo-Name=org.nielsvm.plasma.menupager
+X-KDE-PluginInfo-Version=0.1
+X-KDE-PluginInfo-Website=https://github.com/nielsvm/kde-plasma-applet-menupager
+X-KDE-ServiceTypes=Plasma/Applet
+X-Plasma-API=declarativeappletscript
+X-Plasma-MainScript=ui/main.qml
+X-Plasma-Provides=org.kde.plasma.virtualdesktops

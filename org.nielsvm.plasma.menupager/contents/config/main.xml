@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
+      http://www.kde.org/standards/kcfg/1.0/kcfg.xsd" >
+  <kcfgfile name=""/>
+  <group name="General">
+    <entry name="displayedLabel" type="Enum">
+        <choices>
+            <choice name="Number"/>
+            <choice name="Name"/>
+        </choices>
+        <default>1</default>
+    </entry>
+    <entry name="switchOnScroll" type="Bool">
+      <default>true</default>
+    </entry>
+    <entry name="menuOnClick" type="Bool">
+      <default>true</default>
+    </entry>
+    <entry name="formatBold" type="Bool">
+      <default>true</default>
+    </entry>
+    <entry name="formatItalic" type="Bool">
+      <default>false</default>
+    </entry>
+    <entry name="formatUnderline" type="Bool">
+      <default>false</default>
+    </entry>
+  </group>
+</kcfg>
