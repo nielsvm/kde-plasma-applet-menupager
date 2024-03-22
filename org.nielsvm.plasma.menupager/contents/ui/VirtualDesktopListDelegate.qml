@@ -5,9 +5,9 @@
 
 import QtQuick 2.2
 import QtQuick.Layouts 1.1
-import org.kde.kirigami 2.19 as Kirigami
+import org.kde.kirigami 2.20 as Kirigami
 import org.kde.plasma.core 2.0 as PlasmaCore
-import org.kde.plasma.components 3.0 as PlasmaComponents3
+import org.kde.plasma.components 3.0 as Components
 
 Item {
     id: item
@@ -18,7 +18,7 @@ Item {
     readonly property bool containsMouse: area.containsMouse
     property Item highlight
 
-    implicitHeight: row.implicitHeight + 2 * PlasmaCore.Units.largeSpacing
+    implicitHeight: row.implicitHeight + 2 * Kirigami.Units.largeSpacing
     implicitWidth: row.implicitWidth
     Layout.fillWidth: true
 
@@ -41,13 +41,13 @@ Item {
     RowLayout {
         id: row
         anchors.centerIn: parent
-        width: parent.width - 2 * PlasmaCore.Units.largeSpacing
-        spacing: PlasmaCore.Units.largeSpacing
+        width: parent.width - 2 * Kirigami.Units.largeSpacing
+        spacing: Kirigami.Units.largeSpacing
 
         ColumnLayout {
             Layout.fillWidth: true
             spacing: 0
-            PlasmaComponents3.Label {
+            Components.Label {
                 id: label
                 Layout.fillWidth: true
                 wrapMode: Text.NoWrap

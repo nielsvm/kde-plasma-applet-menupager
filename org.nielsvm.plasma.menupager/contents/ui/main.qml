@@ -5,17 +5,22 @@
 
 import QtQuick 2.15
 import QtQuick.Layouts 1.1
+
 import org.kde.plasma.plasmoid 2.0
-import org.kde.plasma.core 2.0 as PlasmaCore
-import org.kde.plasma.components 3.0 as PlasmaComponents3
+import org.kde.plasma.core as PlasmaCore
+import org.kde.plasma.components 3.0 as Components
 import org.kde.plasma.extras 2.0 as PlasmaExtras
 import org.kde.kquickcontrolsaddons 2.0 as KQuickControlsAddonsComponents
 import org.kde.draganddrop 2.0
 import org.kde.plasma.private.pager 2.0
+import org.kde.kirigami 2.20 as Kirigami
 
-Item {
+import org.kde.kcmutils as KCM
+import org.kde.config as KConfig
+
+PlasmoidItem {
     id: root
-    Plasmoid.preferredRepresentation: Plasmoid.compactRepresentation
+    preferredRepresentation: compactRepresentation
     Plasmoid.status: pagerModel.shouldShowPager
                      ? PlasmaCore.Types.ActiveStatus
                      : PlasmaCore.Types.HiddenStatus
@@ -52,71 +57,63 @@ Item {
         return prefix + string + suffix
     }
 
-    function action_addDesktop() {
-        pagerModel.addDesktop();
-    }
-
-    function action_removeDesktop() {
-        pagerModel.removeDesktop();
-    }
-
-    function action_openKCM() {
-        KQuickControlsAddonsComponents.KCMShell.open("kcm_kwin_virtualdesktops");
-    }
-
     PagerModel {
         id: pagerModel
         enabled: root.visible
-        screenGeometry: plasmoid.screenGeometry
+        screenGeometry: Plasmoid.containment.screenGeometry
     }
 
     /**
      * Panel label.
      */
-    Plasmoid.compactRepresentation: Item {
+    compactRepresentation: Item {
         id: compactRoot
 
         readonly property bool isVertical:   Plasmoid.formFactor === PlasmaCore.Types.Vertical
-        readonly property bool isSmall:      Plasmoid.formFactor === PlasmaCore.Types.Horizontal && Math.round(2 * (compactRoot.height / 5)) <= PlasmaCore.Theme.smallestFont.pixelSize
-        readonly property int  widthFactor:  plasmoid.configuration.displayedLabel ? 4: 1
-        readonly property int  widthMinimum: PlasmaCore.Theme.mSize(PlasmaCore.Theme.defaultFont).height * widthFactor
+        readonly property bool isSmall:      Plasmoid.formFactor === PlasmaCore.Types.Horizontal && Math.round(2 * (compactRoot.height / 5)) <= Kirigami.Theme.smallFont.pixelSize
+        readonly property int  widthFactor:  plasmoid.configuration.displayedLabel ? 10 : 3
+        readonly property int  widthMinimum: widthFactor * Kirigami.Theme.defaultFont.pixelSize
 
-        Layout.minimumWidth: isVertical ? 0 : (label.implicitWidth < widthMinimum ? widthMinimum : label.implicitWidth)
-        Layout.maximumWidth: isVertical ? Infinity : Layout.minimumWidth
-        Layout.preferredWidth: isVertical ? -1 : Layout.minimumWidth
-        Layout.minimumHeight: isVertical ? label.height : PlasmaCore.Theme.smallestFont.pixelSize
-        Layout.maximumHeight: isVertical ? Layout.minimumHeight : Infinity
-        Layout.preferredHeight: isVertical ? Layout.minimumHeight : PlasmaCore.Theme.mSize(PlasmaCore.Theme.defaultFont).height * 2
+        Layout.minimumWidth:    isVertical ? 0 : (label.implicitWidth < widthMinimum ? widthMinimum : label.implicitWidth)
+        Layout.maximumWidth:    isVertical ? Infinity : Layout.minimumWidth
+        Layout.preferredWidth:  isVertical ? -1 : Layout.minimumWidth
+        Layout.minimumHeight:   isVertical ? label.height : Kirigami.Theme.smallFont.pixelSize
+        Layout.maximumHeight:   isVertical ? Layout.minimumHeight : Infinity
+        Layout.preferredHeight: isVertical ? Layout.minimumHeight : Kirigami.Theme.defaultFont.pixelSize * 2
 
-        PlasmaComponents3.Label {
+        Components.Label {
             id: label
-            height: compactRoot.height
+            anchors.fill: parent
             text: format(currentDesktopName())
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
             wrapMode: Text.NoWrap
+
+            // Logic borrowed from org.kde.plasma.digitalclock applet:
+            minimumPixelSize: 1
             fontSizeMode: Text.VerticalFit
-            minimumPointSize: PlasmaCore.Theme.smallestFont.pointSize
-            font.pixelSize: isSmall ? PlasmaCore.Theme.defaultFont.pixelSize : PlasmaCore.Units.roundToIconSize(PlasmaCore.Units.gridUnit * 2)
-            anchors.fill: parent
+            font.family: Kirigami.Theme.defaultFont.family
+            font.weight: Kirigami.Theme.defaultFont.weight
+            font.italic: Kirigami.Theme.defaultFont.italic
+            font.pixelSize: 1.25 * Kirigami.Theme.defaultFont.pixelSize
+            font.pointSize: -1
         }
 
         MouseArea {
             id: mouseArea
             anchors.fill: parent
-
             property int wheelDelta: 0
 
-            onClicked: {
+            onClicked: mouse => {
                 if (plasmoid.configuration.menuOnClick) {
-                    plasmoid.expanded = !plasmoid.expanded
+                    root.expanded = !root.expanded
                 }
                 else {
-                    plasmoid.expanded = false
+                    root.expanded = false
                 }
             }
 
-            onWheel: {
+            onWheel: wheel => {
                 if (!plasmoid.configuration.switchOnScroll) {
                     return;
                 }
@@ -157,11 +154,11 @@ Item {
     /**
      * Non-panel version / popup menu.
      */
-    Plasmoid.fullRepresentation: Item {
+    fullRepresentation: Item {
         implicitHeight: column.implicitHeight
         implicitWidth: column.implicitWidth
 
-        Layout.preferredWidth: PlasmaCore.Units.gridUnit * 12
+        Layout.preferredWidth: Kirigami.Units.gridUnit * 12
         Layout.preferredHeight: implicitHeight
         Layout.minimumWidth: Layout.preferredWidth
         Layout.minimumHeight: Layout.preferredHeight
@@ -189,8 +186,8 @@ Item {
                     text: plasmoid.configuration.displayedLabel ? model.display : index + 1
                     highlight: delegateHighlight
                     visible: true
-                    onClicked: {
-                        plasmoid.expanded = false;
+                    onClicked: mouse => {
+                        root.expanded = false;
                         pagerModel.changePage(index);
                     }
                 }
@@ -200,31 +197,41 @@ Item {
 
     Connections {
         target: plasmoid.configuration
-        onFormatBoldChanged: {
+        function onFormatBoldChanged() {
             pagerModel.refresh();
         }
-        onFormatItalicChanged: {
+        function onFormatItalicChanged() {
             pagerModel.refresh();
         }
-        onFormatUnderlineChanged: {
+        function onFormatUnderlineChanged() {
             pagerModel.refresh();
         }
-        onSwitchOnScrollChanged: {
+        function onSwitchOnScrollChanged() {
             pagerModel.refresh();
         }
-        onDisplayedLabelChanged: {
+        function onDisplayedLabelChanged() {
             pagerModel.refresh();
         }
     }
 
-    Component.onCompleted: {
-        if (KQuickControlsAddonsComponents.KCMShell.authorize("kcm_kwin_virtualdesktops.desktop").length > 0) {
-            plasmoid.setAction("addDesktop", i18n("Add Virtual Desktop"), "list-add");
-            plasmoid.setAction("removeDesktop", i18n("Remove Virtual Desktop"), "list-remove");
-            plasmoid.action("removeDesktop").enabled = Qt.binding(function() {
-                return pagerModel.count > 1;
-            });
-            plasmoid.setAction("openKCM", i18n("Configure Virtual Desktops..."), "configure");
+    Plasmoid.contextualActions: [
+        PlasmaCore.Action {
+            text: i18n("Add Virtual Desktop")
+            icon.name: "list-add"
+            visible: KConfig.KAuthorized.authorize("kcm_kwin_virtualdesktops")
+            onTriggered: pagerModel.addDesktop()
+        },
+        PlasmaCore.Action {
+            text: i18n("Remove Virtual Desktop")
+            icon.name: "list-remove"
+            visible: KConfig.KAuthorized.authorize("kcm_kwin_virtualdesktops")
+            enabled: pagerModel.count > 1
+            onTriggered: pagerModel.removeDesktop()
+        },
+        PlasmaCore.Action {
+            text: i18n("Configure Virtual Desktops…")
+            visible: KConfig.KAuthorized.authorize("kcm_kwin_virtualdesktops")
+            onTriggered: KCM.KCMLauncher.openSystemSettings("kcm_kwin_virtualdesktops")
         }
-    }
+    ]
 }
