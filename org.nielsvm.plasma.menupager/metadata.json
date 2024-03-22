@@ -1,0 +1,29 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "niels@nielsvm.org",
+                "Name": "Niels"
+            }
+        ],
+        "Category": "Windows and Tasks",
+        "Description": "Switch between virtual desktops using a menu",
+        "EnabledByDefault": false,
+        "Icon": "org.kde.plasma.activitybar",
+        "Id": "org.nielsvm.plasma.menupager",
+        "License": "GPL3",
+        "Name": "Menu Pager",
+        "ServiceTypes": [
+            "Plasma/Applet"
+        ],
+        "Version": "0.2",
+        "Website": "https://github.com/nielsvm/kde-plasma-applet-menupager"
+    },
+    "X-Plasma-API": "declarativeappletscript",
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "X-Plasma-MainScript": "ui/main.qml",
+    "X-Plasma-Provides": [
+        "org.kde.plasma.virtualdesktops"
+    ]
+}
