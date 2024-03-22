@@ -25,7 +25,7 @@ PlasmoidItem {
                      ? PlasmaCore.Types.ActiveStatus
                      : PlasmaCore.Types.HiddenStatus
 
-    function currentDesktopName() {
+    function getCurrentDesktopName() {
         if (!plasmoid.configuration.displayedLabel) {
             return pagerModel.currentPage+1;
         }
@@ -37,6 +37,22 @@ PlasmoidItem {
             return i18n("Virtual Desktop");
         }
         return pagerModel.data(pagerModel.index(pagerModel.currentPage, 0), 0);
+    }
+
+    function getFontSize() {
+        var factor = Kirigami.Units.gridUnit / 12;
+        // Small
+        if (plasmoid.configuration.fontSize == 0) {
+            return factor * Kirigami.Theme.smallFont.pixelSize;
+        }
+        // Large
+        else if (plasmoid.configuration.fontSize == 2) {
+            return (factor*1.2) * Kirigami.Theme.defaultFont.pixelSize
+        }
+        // Normal
+        else {
+            return factor * Kirigami.Theme.defaultFont.pixelSize;
+        }
     }
 
     function format(string) {
@@ -84,7 +100,7 @@ PlasmoidItem {
         Components.Label {
             id: label
             anchors.fill: parent
-            text: format(currentDesktopName())
+            text: format(getCurrentDesktopName())
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
             wrapMode: Text.NoWrap
@@ -95,7 +111,7 @@ PlasmoidItem {
             font.family: Kirigami.Theme.defaultFont.family
             font.weight: Kirigami.Theme.defaultFont.weight
             font.italic: Kirigami.Theme.defaultFont.italic
-            font.pixelSize: 1.25 * Kirigami.Theme.defaultFont.pixelSize
+            font.pixelSize: getFontSize()
             font.pointSize: -1
         }
 
@@ -210,6 +226,9 @@ PlasmoidItem {
             pagerModel.refresh();
         }
         function onDisplayedLabelChanged() {
+            pagerModel.refresh();
+        }
+        function onFontSizeChanged() {
             pagerModel.refresh();
         }
     }

@@ -12,6 +12,14 @@
         </choices>
         <default>1</default>
     </entry>
+    <entry name="fontSize" type="Enum">
+        <choices>
+            <choice name="Small"/>
+            <choice name="Normal"/>
+            <choice name="Large"/>
+        </choices>
+        <default>1</default>
+    </entry>
     <entry name="switchOnScroll" type="Bool">
       <default>true</default>
     </entry>

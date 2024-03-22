@@ -12,6 +12,7 @@ import org.kde.kcmutils as KCM
 
 KCM.SimpleKCM {
     property int   cfg_displayedLabel
+    property int   cfg_fontSize
     property alias cfg_formatBold:      formatBoldCheck.checked
     property alias cfg_formatItalic:    formatItalicCheck.checked
     property alias cfg_formatUnderline: formatUnderlineCheck.checked
@@ -21,7 +22,7 @@ KCM.SimpleKCM {
     Kirigami.FormLayout {
 
         /**
-         * Behavior.
+         * Behavior:
          */
         Item {
             Kirigami.FormData.isSection: true
@@ -37,7 +38,7 @@ KCM.SimpleKCM {
         }
 
         /**
-         * Text display.
+         * Display:
          */
         Item {
             Kirigami.FormData.isSection: true
@@ -62,7 +63,39 @@ KCM.SimpleKCM {
         }
 
         /**
-         * Formatting.
+         * Font size:
+         */
+        Item {
+            Kirigami.FormData.isSection: true
+        }
+        QQC2.ButtonGroup {
+            id: fontSizeGroup
+        }
+        QQC2.RadioButton {
+            id: fontSizeSmallRadio
+            Kirigami.FormData.label: i18n("Font size:")
+            QQC2.ButtonGroup.group: fontSizeGroup
+            text: i18n("Small")
+            checked: cfg_fontSize === 0
+            onToggled: if (checked) cfg_fontSize = 0;
+        }
+        QQC2.RadioButton {
+            id: fontSizeNormalRadio
+            QQC2.ButtonGroup.group: fontSizeGroup
+            text: i18n("Normal")
+            checked: cfg_fontSize === 1
+            onToggled: if (checked) cfg_fontSize = 1;
+        }
+        QQC2.RadioButton {
+            id: fontSizeLargeRadio
+            QQC2.ButtonGroup.group: fontSizeGroup
+            text: i18n("Large")
+            checked: cfg_fontSize === 2
+            onToggled: if (checked) cfg_fontSize = 2;
+        }
+
+        /**
+         * Font style:
          */
         Item {
             Kirigami.FormData.isSection: true
