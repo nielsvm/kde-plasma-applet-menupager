@@ -12,6 +12,7 @@ import org.kde.kcmutils as KCM
 
 KCM.SimpleKCM {
     property int   cfg_displayedLabel
+    property int   cfg_displayWidth
     property int   cfg_fontSize
     property alias cfg_formatBold:      formatBoldCheck.checked
     property alias cfg_formatItalic:    formatItalicCheck.checked
@@ -60,6 +61,45 @@ KCM.SimpleKCM {
             text: i18n("Desktop name")
             checked: cfg_displayedLabel === 1
             onToggled: if (checked) cfg_displayedLabel = 1;
+        }
+
+        /**
+         * Display width:
+         */
+        Item {
+            Kirigami.FormData.isSection: true
+        }
+        QQC2.ButtonGroup {
+            id: displayWidthGroup
+        }
+        QQC2.RadioButton {
+            id: displayWidthMinimumRadio
+            Kirigami.FormData.label: i18n("Width:")
+            QQC2.ButtonGroup.group: displayWidthGroup
+            text: i18n("Minimum: as wide as desktop name")
+            checked: cfg_displayWidth === 0
+            onToggled: if (checked) cfg_displayWidth = 0;
+        }
+        QQC2.RadioButton {
+            id: displayWidthSmallRadio
+            QQC2.ButtonGroup.group: displayWidthGroup
+            text: i18n("Small")
+            checked: cfg_displayWidth === 1
+            onToggled: if (checked) cfg_displayWidth = 1;
+        }
+        QQC2.RadioButton {
+            id: displayWidthNormalRadio
+            QQC2.ButtonGroup.group: displayWidthGroup
+            text: i18n("Normal")
+            checked: cfg_displayWidth === 2
+            onToggled: if (checked) cfg_displayWidth = 2;
+        }
+        QQC2.RadioButton {
+            id: displayWidthLargeRadio
+            QQC2.ButtonGroup.group: displayWidthGroup
+            text: i18n("Large")
+            checked: cfg_displayWidth === 3
+            onToggled: if (checked) cfg_displayWidth = 3;
         }
 
         /**

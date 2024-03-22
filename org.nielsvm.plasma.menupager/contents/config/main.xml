@@ -5,12 +5,27 @@
       http://www.kde.org/standards/kcfg/1.0/kcfg.xsd" >
   <kcfgfile name=""/>
   <group name="General">
+    <entry name="switchOnScroll" type="Bool">
+      <default>true</default>
+    </entry>
+    <entry name="menuOnClick" type="Bool">
+      <default>true</default>
+    </entry>
     <entry name="displayedLabel" type="Enum">
         <choices>
             <choice name="Number"/>
             <choice name="Name"/>
         </choices>
         <default>1</default>
+    </entry>
+    <entry name="displayWidth" type="Enum">
+        <choices>
+            <choice name="Minimum"/>
+            <choice name="Small"/>
+            <choice name="Normal"/>
+            <choice name="Large"/>
+        </choices>
+        <default>2</default>
     </entry>
     <entry name="fontSize" type="Enum">
         <choices>
@@ -19,12 +34,6 @@
             <choice name="Large"/>
         </choices>
         <default>1</default>
-    </entry>
-    <entry name="switchOnScroll" type="Bool">
-      <default>true</default>
-    </entry>
-    <entry name="menuOnClick" type="Bool">
-      <default>true</default>
     </entry>
     <entry name="formatBold" type="Bool">
       <default>true</default>

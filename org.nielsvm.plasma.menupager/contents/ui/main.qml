@@ -39,6 +39,25 @@ PlasmoidItem {
         return pagerModel.data(pagerModel.index(pagerModel.currentPage, 0), 0);
     }
 
+    function getDisplayWidth() {
+        // Minimum
+        if (plasmoid.configuration.displayWidth == 0) {
+            return 1;
+        }
+        // Small
+        else if (plasmoid.configuration.displayWidth == 1) {
+            return 5;
+        }
+        // Large
+        else if (plasmoid.configuration.displayWidth == 3) {
+            return 20;
+        }
+        // Normal
+        else {
+            return 10;
+        }
+    }
+
     function getFontSize() {
         var factor = Kirigami.Units.gridUnit / 12;
         // Small
@@ -86,9 +105,7 @@ PlasmoidItem {
         id: compactRoot
 
         readonly property bool isVertical:   Plasmoid.formFactor === PlasmaCore.Types.Vertical
-        readonly property bool isSmall:      Plasmoid.formFactor === PlasmaCore.Types.Horizontal && Math.round(2 * (compactRoot.height / 5)) <= Kirigami.Theme.smallFont.pixelSize
-        readonly property int  widthFactor:  plasmoid.configuration.displayedLabel ? 10 : 3
-        readonly property int  widthMinimum: widthFactor * Kirigami.Theme.defaultFont.pixelSize
+        readonly property int  widthMinimum: getDisplayWidth() * Kirigami.Theme.defaultFont.pixelSize
 
         Layout.minimumWidth:    isVertical ? 0 : (label.implicitWidth < widthMinimum ? widthMinimum : label.implicitWidth)
         Layout.maximumWidth:    isVertical ? Infinity : Layout.minimumWidth
@@ -213,6 +230,21 @@ PlasmoidItem {
 
     Connections {
         target: plasmoid.configuration
+        function onSwitchOnScrollChanged() {
+            pagerModel.refresh();
+        }
+        function onMenuOnClickChanged() {
+            pagerModel.refresh();
+        }
+        function onDisplayedLabelChanged() {
+            pagerModel.refresh();
+        }
+        function onDisplayWidthChanged() {
+            pagerModel.refresh();
+        }
+        function onFontSizeChanged() {
+            pagerModel.refresh();
+        }
         function onFormatBoldChanged() {
             pagerModel.refresh();
         }
@@ -220,15 +252,6 @@ PlasmoidItem {
             pagerModel.refresh();
         }
         function onFormatUnderlineChanged() {
-            pagerModel.refresh();
-        }
-        function onSwitchOnScrollChanged() {
-            pagerModel.refresh();
-        }
-        function onDisplayedLabelChanged() {
-            pagerModel.refresh();
-        }
-        function onFontSizeChanged() {
             pagerModel.refresh();
         }
     }
