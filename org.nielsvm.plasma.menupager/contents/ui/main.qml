@@ -12,7 +12,8 @@ import org.kde.plasma.components 3.0 as Components
 import org.kde.plasma.extras 2.0 as PlasmaExtras
 import org.kde.kquickcontrolsaddons 2.0 as KQuickControlsAddonsComponents
 import org.kde.draganddrop 2.0
-import org.kde.plasma.private.pager 2.0
+import org.kde.taskmanager as TaskManager
+import org.kde.plasma.workspace.dbus as DBus
 import org.kde.kirigami 2.20 as Kirigami
 
 import org.kde.kcmutils as KCM
@@ -21,22 +22,34 @@ import org.kde.config as KConfig
 PlasmoidItem {
     id: root
     preferredRepresentation: compactRepresentation
-    Plasmoid.status: pagerModel.shouldShowPager
+    Plasmoid.status: desktopInfo.numberOfDesktops > 1
                      ? PlasmaCore.Types.ActiveStatus
                      : PlasmaCore.Types.HiddenStatus
 
+    function pageForDesktopId(desktopId) {
+        for (let i = 0; i < desktopInfo.desktopIds.length; ++i) {
+            if (desktopInfo.desktopIds[i] === desktopId) {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    function getCurrentPage() {
+        return pageForDesktopId(desktopInfo.currentDesktop);
+    }
+
     function getCurrentDesktopName() {
         if (!plasmoid.configuration.displayedLabel) {
-            return pagerModel.currentPage+1;
+            return getCurrentPage() + 1;
         }
-        var page = pagerModel.currentPage;
-        if (!pagerModel.hasIndex(pagerModel.currentPage, 0)) {
+        var page = getCurrentPage();
+        if (page < 0 || page >= desktopInfo.desktopNames.length) {
             // When no index yet exists, it seems not possible to create it
-            // with createIndex() and thus we return a fixed string as
-            // temporary workaround.
+            // immediately during startup, so return a temporary fallback.
             return i18n("Virtual Desktop");
         }
-        return pagerModel.data(pagerModel.index(pagerModel.currentPage, 0), 0);
+        return desktopInfo.desktopNames[page];
     }
 
     function getDisplayWidth() {
@@ -92,10 +105,46 @@ PlasmoidItem {
         return prefix + string + suffix
     }
 
-    PagerModel {
+    TaskManager.VirtualDesktopInfo {
+        id: desktopInfo
+    }
+
+    QtObject {
         id: pagerModel
-        enabled: root.visible
-        screenGeometry: Plasmoid.containment.screenGeometry
+
+        readonly property bool shouldShowPager: desktopInfo.numberOfDesktops > 1
+        readonly property int count: desktopInfo.numberOfDesktops
+        readonly property int currentPage: getCurrentPage()
+
+        function hasIndex(row, column) {
+            return column === 0 && row >= 0 && row < desktopInfo.desktopNames.length;
+        }
+
+        function index(row, column) {
+            return { row: row, column: column };
+        }
+
+        function data(index, role) {
+            if (role !== 0 || !hasIndex(index.row, index.column)) {
+                return null;
+            }
+            return desktopInfo.desktopNames[index.row];
+        }
+
+        function changePage(page) {
+            if (page < 0 || page >= desktopInfo.numberOfDesktops) {
+                return;
+            }
+
+            DBus.SessionBus.asyncCall(DBus.dbusMessage({
+                service: "org.kde.KWin",
+                path: "/VirtualDesktopManager",
+                iface: "org.kde.KWin.VirtualDesktopManager",
+                member: "setCurrentDesktop",
+                arguments: [page + 1],
+                signature: "i"
+            }));
+        }
     }
 
     /**
@@ -213,10 +262,10 @@ PlasmoidItem {
             anchors.fill: parent
 
             Repeater {
-                model: pagerModel
+                model: desktopInfo.desktopNames
 
                 VirtualDesktopListDelegate {
-                    text: plasmoid.configuration.displayedLabel ? model.display : index + 1
+                    text: plasmoid.configuration.displayedLabel ? modelData : index + 1
                     highlight: delegateHighlight
                     visible: true
                     onClicked: mouse => {
