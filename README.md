@@ -31,3 +31,14 @@ kpackagetool5 -i kde-plasma-applet-menupager-0.1.tar.gz
 ![Basic configurability](assets/README-2.png)
 
 ![Works via menu and mouse wheel](assets/README-3.png)
+
+### Changelog
+
+####### 0.3
+- PR6: Fix Plasma 6.6 compatibility
+
+####### 0.2
+- Plasma6 release with new configuration options!
+
+####### 0.1
+- Initial version for Plasma5
