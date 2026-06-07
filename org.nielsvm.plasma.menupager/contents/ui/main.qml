@@ -99,16 +99,18 @@ PlasmoidItem {
         }
 
         function getCurrentDesktopName() {
-            if (!plasmoid.configuration.displayedLabel) {
-                return getCurrentPage() + 1;
-            }
             var page = getCurrentPage();
-            if (page < 0 || page >= desktopNames.length) {
-                // When no index yet exists, it seems not possible to create it
-                // immediately during startup, so return a temporary fallback.
-                return i18n("Virtual Desktop");
+            // displayedLabel = Name
+            if (plasmoid.configuration.displayedLabel === 1) {
+                return desktopNames[page];
             }
-            return desktopNames[page];
+            // displayedLabel = NameAndNumber
+            else if (plasmoid.configuration.displayedLabel === 2) {
+                return i18n("%1 - %2", page + 1, desktopNames[page]);
+            }
+
+            // displayedLabel = Number
+            return page + 1;
         }
     }
 

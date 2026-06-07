@@ -62,6 +62,13 @@ KCM.SimpleKCM {
             checked: cfg_displayedLabel === 1
             onToggled: if (checked) cfg_displayedLabel = 1;
         }
+        QQC2.RadioButton {
+            id: desktopNameAndNumberRadio
+            QQC2.ButtonGroup.group: displayedLabelGroup
+            text: i18n("Desktop name + number")
+            checked: cfg_displayedLabel === 2
+            onToggled: if (checked) cfg_displayedLabel = 2;
+        }
 
         /**
          * Display width:

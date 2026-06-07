@@ -15,6 +15,7 @@
         <choices>
             <choice name="Number"/>
             <choice name="Name"/>
+            <choice name="NameAndNumber"/>
         </choices>
         <default>1</default>
     </entry>
