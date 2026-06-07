@@ -35,6 +35,8 @@ kpackagetool5 -i kde-plasma-applet-menupager-0.1.tar.gz
 ### Changelog
 
 ####### 0.3
+- Remove dead signal calls, everything still works without them.
+- Ported away from old pagerModel and restored all features.
 - Add shell.nix and .gitignore to for plasmoidviewer and qmllint.
 - PR6: Fix Plasma 6.6 compatibility
 

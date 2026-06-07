@@ -12,7 +12,7 @@ import org.kde.plasma.components 3.0 as Components
 import org.kde.plasma.extras 2.0 as PlasmaExtras
 import org.kde.kquickcontrolsaddons 2.0 as KQuickControlsAddonsComponents
 import org.kde.draganddrop 2.0
-import org.kde.taskmanager as TaskManager
+import org.kde.taskmanager
 import org.kde.plasma.workspace.dbus as DBus
 import org.kde.kirigami 2.20 as Kirigami
 
@@ -25,32 +25,6 @@ PlasmoidItem {
     Plasmoid.status: desktopInfo.numberOfDesktops > 1
                      ? PlasmaCore.Types.ActiveStatus
                      : PlasmaCore.Types.HiddenStatus
-
-    function pageForDesktopId(desktopId) {
-        for (let i = 0; i < desktopInfo.desktopIds.length; ++i) {
-            if (desktopInfo.desktopIds[i] === desktopId) {
-                return i;
-            }
-        }
-        return 0;
-    }
-
-    function getCurrentPage() {
-        return pageForDesktopId(desktopInfo.currentDesktop);
-    }
-
-    function getCurrentDesktopName() {
-        if (!plasmoid.configuration.displayedLabel) {
-            return getCurrentPage() + 1;
-        }
-        var page = getCurrentPage();
-        if (page < 0 || page >= desktopInfo.desktopNames.length) {
-            // When no index yet exists, it seems not possible to create it
-            // immediately during startup, so return a temporary fallback.
-            return i18n("Virtual Desktop");
-        }
-        return desktopInfo.desktopNames[page];
-    }
 
     function getDisplayWidth() {
         // Minimum
@@ -105,45 +79,84 @@ PlasmoidItem {
         return prefix + string + suffix
     }
 
-    TaskManager.VirtualDesktopInfo {
+    /**
+     * Desktop Info (upstream interface).
+     */
+    VirtualDesktopInfo {
         id: desktopInfo
+
+        function pageForDesktopId(desktopId) {
+            for (let i = 0; i < desktopInfo.desktopIds.length; ++i) {
+                if (desktopInfo.desktopIds[i] === desktopId) {
+                    return i;
+                }
+            }
+            return 0;
+        }
+
+        function getCurrentPage() {
+            return pageForDesktopId(currentDesktop);
+        }
+
+        function getCurrentDesktopName() {
+            if (!plasmoid.configuration.displayedLabel) {
+                return getCurrentPage() + 1;
+            }
+            var page = getCurrentPage();
+            if (page < 0 || page >= desktopNames.length) {
+                // When no index yet exists, it seems not possible to create it
+                // immediately during startup, so return a temporary fallback.
+                return i18n("Virtual Desktop");
+            }
+            return desktopNames[page];
+        }
     }
 
+    /**
+     * Desktop Manager (mutable actions).
+     */
     QtObject {
-        id: pagerModel
+        id: desktopMngr
 
-        readonly property bool shouldShowPager: desktopInfo.numberOfDesktops > 1
-        readonly property int count: desktopInfo.numberOfDesktops
-        readonly property int currentPage: getCurrentPage()
-
-        function hasIndex(row, column) {
-            return column === 0 && row >= 0 && row < desktopInfo.desktopNames.length;
-        }
-
-        function index(row, column) {
-            return { row: row, column: column };
-        }
-
-        function data(index, role) {
-            if (role !== 0 || !hasIndex(index.row, index.column)) {
-                return null;
-            }
-            return desktopInfo.desktopNames[index.row];
-        }
-
-        function changePage(page) {
+        function setPage(page) {
             if (page < 0 || page >= desktopInfo.numberOfDesktops) {
                 return;
             }
 
-            DBus.SessionBus.asyncCall(DBus.dbusMessage({
-                service: "org.kde.KWin",
-                path: "/VirtualDesktopManager",
-                iface: "org.kde.KWin.VirtualDesktopManager",
-                member: "setCurrentDesktop",
-                arguments: [page + 1],
-                signature: "i"
-            }));
+            DBus.SessionBus.asyncCall({
+                "service": "org.kde.KWin",
+                "path": "/KWin",
+                "iface": "org.kde.KWin",
+                "member": "setCurrentDesktop",
+                "arguments": [
+                    new DBus.int32(page + 1)
+                ],
+            });
+        }
+
+        function addDesktop() {
+            DBus.SessionBus.asyncCall({
+                "service": "org.kde.kglobalaccel",
+                "path": "/VirtualDesktopManager",
+                "iface": "org.kde.KWin.VirtualDesktopManager",
+                "member": "createDesktop",
+                "arguments": [
+                    new DBus.uint32(desktopInfo.numberOfDesktops),
+                    new DBus.string("New Desktop")
+                ],
+            })
+        }
+
+        function removeDesktop() {
+            DBus.SessionBus.asyncCall({
+                "service": "org.kde.kglobalaccel",
+                "path": "/VirtualDesktopManager",
+                "iface": "org.kde.KWin.VirtualDesktopManager",
+                "member": "removeDesktop",
+                "arguments": [
+                    new DBus.string(desktopInfo.desktopIds[desktopInfo.numberOfDesktops - 1])
+                ],
+            })
         }
     }
 
@@ -166,7 +179,7 @@ PlasmoidItem {
         Components.Label {
             id: label
             anchors.fill: parent
-            text: format(getCurrentDesktopName())
+            text: format(desktopInfo.getCurrentDesktopName())
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
             wrapMode: Text.NoWrap
@@ -215,17 +228,17 @@ PlasmoidItem {
 
                 while (increment !== 0) {
                     if (increment < 0) {
-                        const nextPage = Math.min(((pagerModel.currentPage == (pagerModel.count-1))
+                        const nextPage = Math.min(((desktopInfo.getCurrentPage() == (desktopInfo.numberOfDesktops-1))
                                                     ? 0
-                                                    : pagerModel.currentPage+1
-                                                 ), pagerModel.count-1);
-                        pagerModel.changePage(nextPage);
+                                                    : desktopInfo.getCurrentPage()+1
+                                                 ), desktopInfo.numberOfDesktops-1);
+                        desktopMngr.setPage(nextPage);
                     } else {
-                        const previousPage = Math.max(((pagerModel.currentPage == 0)
-                                                        ? pagerModel.count-1
-                                                        : pagerModel.currentPage-1
+                        const previousPage = Math.max(((desktopInfo.getCurrentPage() == 0)
+                                                        ? desktopInfo.numberOfDesktops-1
+                                                        : desktopInfo.getCurrentPage()-1
                                                      ), 0);
-                        pagerModel.changePage(previousPage);
+                        desktopMngr.setPage(previousPage);
                     }
                     increment += (increment < 0) ? 1 : -1;
                 }
@@ -270,38 +283,10 @@ PlasmoidItem {
                     visible: true
                     onClicked: mouse => {
                         root.expanded = false;
-                        pagerModel.changePage(index);
+                        desktopMngr.setPage(index);
                     }
                 }
             }
-        }
-    }
-
-    Connections {
-        target: plasmoid.configuration
-        function onSwitchOnScrollChanged() {
-            pagerModel.refresh();
-        }
-        function onMenuOnClickChanged() {
-            pagerModel.refresh();
-        }
-        function onDisplayedLabelChanged() {
-            pagerModel.refresh();
-        }
-        function onDisplayWidthChanged() {
-            pagerModel.refresh();
-        }
-        function onFontSizeChanged() {
-            pagerModel.refresh();
-        }
-        function onFormatBoldChanged() {
-            pagerModel.refresh();
-        }
-        function onFormatItalicChanged() {
-            pagerModel.refresh();
-        }
-        function onFormatUnderlineChanged() {
-            pagerModel.refresh();
         }
     }
 
@@ -310,14 +295,14 @@ PlasmoidItem {
             text: i18n("Add Virtual Desktop")
             icon.name: "list-add"
             visible: KConfig.KAuthorized.authorize("kcm_kwin_virtualdesktops")
-            onTriggered: pagerModel.addDesktop()
+            onTriggered: desktopMngr.addDesktop()
         },
         PlasmaCore.Action {
             text: i18n("Remove Virtual Desktop")
             icon.name: "list-remove"
             visible: KConfig.KAuthorized.authorize("kcm_kwin_virtualdesktops")
-            enabled: pagerModel.count > 1
-            onTriggered: pagerModel.removeDesktop()
+            enabled: desktopInfo.numberOfDesktops > 1
+            onTriggered: desktopMngr.removeDesktop()
         },
         PlasmaCore.Action {
             text: i18n("Configure Virtual Desktops…")
