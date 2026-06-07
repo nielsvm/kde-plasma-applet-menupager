@@ -35,6 +35,7 @@ kpackagetool5 -i kde-plasma-applet-menupager-0.1.tar.gz
 ### Changelog
 
 ####### 0.3
+- Add shell.nix and .gitignore to for plasmoidviewer and qmllint.
 - PR6: Fix Plasma 6.6 compatibility
 
 ####### 0.2
