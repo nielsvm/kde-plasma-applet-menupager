@@ -34,7 +34,7 @@ kpackagetool5 -i kde-plasma-applet-menupager-0.1.tar.gz
 
 ### Changelog
 
-####### 0.3
+####### 0.3 (works with Plasma 6.6)
 - PR4: Add option to display the Desktop name + index
 - Remove dead signal calls, everything still works without them.
 - Ported away from old pagerModel and restored all features.
